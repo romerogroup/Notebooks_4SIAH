@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#PBS -N MXNET_JOB
+#PBS -j oe
+#PBS -l nodes=1:ppn=8:gpus=3
+###PBS -q comm_gpu_week
+#PBS -q be_gpu
+
+cd $PBS_O_WORKDIR
+
+NAME=CIFAR10_3GPU
+MXNET_IMAGE=/shared/containers/NGC_MXNet_22.07-py3.sif
+PYTHON_SCRIPT=/scratch/gufranco/deep_learning/scripts/train_cifar10.py
+OUTPUT=$HOME/scratch/deep_learning/output/$NAME
+DATA=$HOME/scratch/deep_learning/data
+
+nvidia-smi
+
+module load singularity
+
+singularity exec --nv $MXNET_IMAGE python3 $PYTHON_SCRIPT --num-epochs 20 \
+                                                        --mode hybrid \
+                                                        --num-gpus 3 \
+                                                        -j 3 \
+                                                        --batch-size 96 \
+                                                        --wd 0.0001 \
+                                                        --lr 0.1 \
+                                                        --lr-decay 0.1 \
+                                                        --lr-decay-epoch 80,160 \
+                                                        --model cifar_resnet20_v1 \
+                                                        --data-dir $DATA \
+                                                        --output-dir $OUTPUT \
+                                                        --save-plot-dir $OUTPUT &> ${OUTPUT}.log
+
