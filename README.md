@@ -1,1 +1,1 @@
-# Jupyter Notebooks for Scientist in a Hurry
+# Jupyter Notebooks for Scientists in a Hurry
