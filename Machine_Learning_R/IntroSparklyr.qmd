@@ -1,0 +1,300 @@
+---
+title: "Introduction to Spark on R"
+format: html
+editor: visual
+---
+
+## Spark and Sparklyr
+
+*sparklyr* is an R interface for Apache Spark. It's available in CRAN and works like any other CRAN package, meaning that it's agnostic to Spark versions, it's easy to install, and it serves the R community:
+
+<https://spark.rstudio.com>.
+
+## Spark and Java environment
+
+Spark is built in the Scala programming language, which is run by the **Java Virtual Machine (JVM)**, you also need to install Java 8 on your system. It is likely that your system already has Java installed, but you should still check the version and update or downgrade as described in Installing Java. You can use the following R command to check which version is installed on your system:
+
+```{r}
+system("java -version")
+```
+
+## Loading Sparklyr
+
+```{r}
+#| echo: true
+library(sparklyr)
+library(ggplot2)
+```
+
+Sparklyr itself is just an interface to Spark. Spark needs to be present on the system, this is the case here as this document was created on a singularity container that includes Spark. You can check which versions are installed by running this command:
+
+```{r}
+#| echo: true
+spark_available_versions()
+```
+
+## Connecting to a Spark cluster
+
+Spark was created with scalability in mind. For this simple tutorial we will be using a local machine but keep in mind that Spark can also be used on multiple machines on a HPC cluster.
+
+We start any Spark session by creating a Spark Connect instance
+
+```{r}
+sc <- spark_connect(master='local')
+```
+
+The master parameter identifies which is the "main" machine from the Spark cluster; this machine is often called the driver node. When working with real clusters using many machines, most machines will be worker machines and one will be the master. In our case we have just one machine, the machine were we are running this code and it is the "local".
+
+For our first exploration we will copy the IRIS dataset, a well known dataset often used for demonstrate concepts in classification and clustering.
+
+The data set consists of 50 samples from each of three species of Iris (Iris setosa, Iris virginica and Iris versicolor). Four features were measured from each sample: the length and the width of the sepals and petals, in centimeters.
+
+```{r}
+iris_tbl <- copy_to(sc, iris, "iris", overwrite = TRUE)
+```
+
+Lets have a look to this dataset
+
+```{r}
+iris_tbl
+```
+
+The first parameter of the function `copy_to()` is sc, it gives the function a reference to the active Spark connection that was created earlier with `spark_connect()`. The second parameter specifies a dataset to load into Spark. Now, `copy_to()` returns a reference to the dataset in Spark, which R automatically prints. Whenever a Spark dataset is printed, Spark collects some of the records and displays them for you. In this particular case, that dataset contains only a few rows describing the first values of the iris flowers and their measurements. Notice that Spark was created to deal with datasets that could have millions or even billions of entries. Spark tries always to return as little as possible and will not bring the entire dataset to the screen.
+
+## Analysing the data
+
+When using Spark from R to analyze data, you can use SQL (Structured Query Language) or dplyr (a grammar of data manipulation). Lets count the number of entries in the dataset. We know that they are 150 (50 for each species) but in real data problems the actual number could be unknown and counting the number of entries is a problem itself. We will use both methods to count for entries.
+
+### Using SQL with the DBI package
+
+To count how many records are available in our iris dataset, we can run the following:
+
+```{r}
+library(DBI)
+dbGetQuery(sc, "SELECT count(*) FROM iris")
+```
+
+### Using dplyr
+
+A more natural alternative in R is using `dplyr` a package for data manipulation.
+
+```{r}
+library(dplyr)
+count(iris_tbl)
+```
+
+In data analysis and machine learning you start by inspecting the data. It is always a good idea to get a visual feeling of the data. However in many cases it is not practical to see all the entries and the number of columns is too many to make a plot from them. To contour these limitations we use sampling and column selection. In this example we will take just 50 entries out of 150 and selecting just two columns.
+
+```{r}
+select(iris_tbl, Sepal_Length, Sepal_Width) %>%
+  sample_n(50) %>%
+  collect() %>%
+  plot()
+```
+
+## Data Storage
+
+The iris dataset is very small and usually included in many Machine Learning and Data Analysis packages. In real applications your data will come from a variety of sources. Data could come from plain text tables, CSV files, HDF5 files, JSON files or entire relational databases. For our first example we will store the iris dataset into a CSV file and we will recreate the dataset reading from that CSV file.
+
+```{r}
+file <- "iris_table.csv"
+
+if (file.exists(file)) {
+ unlink(file, recursive = TRUE)
+ cat("The directory has been deleted")
+}
+spark_write_csv(iris_tbl, file)
+```
+
+If your are using multiple workers you will get multiple CSV files in a defined folder. That is because the data could be so large that a single machine could not store the entire data.
+
+We can now read back from the local file system and recreate the dataset.
+
+```{r}
+iris_table <- spark_read_csv(sc, file)
+```
+
+The data is now on a new set inside Spark.
+
+## K-Means Clustering
+
+k-means is one of the most commonly used clustering algorithms that clusters the data points into a predefined number of clusters. The MLlib implementation includes a parallelized variant of the k-means++ method.
+
+For example, we can take a couple of columns from the IRIS dataset and obtain the centroids for 3 clusters.
+
+```{r}
+kmeans_model <- iris_tbl %>%
+  ml_kmeans(k = 3, features = c("Petal_Length", "Petal_Width"))
+
+kmeans_model
+```
+
+What we got were the centers for 3 clusters. We know that we have 3 species of IRIS, the clustering algorithm is trying to select 3 cluster, the question is if the 3 clusters correlate with the actual species.
+
+```{r}
+predicted <- ml_predict(kmeans_model, iris_tbl) %>%
+  collect()
+
+table(predicted$Species, predicted$prediction)
+```
+
+We see that all the **Iris Setosa** can be identified, ie the cluster is perfectly disjointed.
+
+```{r}
+predicted %>%
+  ggplot(aes(Petal_Length, Petal_Width)) +
+  geom_point(aes(Petal_Width, Petal_Length, col = factor(prediction + 1)),
+    size = 2, alpha = 0.5
+  ) +
+  geom_point(
+    data = kmeans_model$centers, aes(Petal_Width, Petal_Length),
+    col = scales::muted(c("red", "green", "blue")),
+    pch = "x", size = 12
+  ) +
+  scale_color_discrete(
+    name = "Predicted Cluster",
+    labels = paste("Cluster", 1:3)
+  ) +
+  labs(
+    x = "Petal Length",
+    y = "Petal Width",
+    title = "K-Means Clustering",
+    subtitle = "Use Spark.ML to predict cluster membership with the iris dataset."
+  )
+```
+
+## Linear Regression
+
+Linear regression is a model to model the linear relationship between a response variable and one or more explanatory variables.
+
+We call it linear regression, because we assume that response variable follow a linear relation with each explanatory variable. Linear models are very useful because they are simple.
+
+$$
+r = a_1 w_1 + a_2 w_2 + \cdots + a_n w_n
+$$
+The simplest case is when we have a response variable such as "Petal_Length" and we have a single explanatory variable "Petal_Width" we can create a model like this:
+
+```{r}
+lm_model <- iris_tbl %>%
+  ml_linear_regression(Petal_Length ~ Petal_Width)
+lm_model
+```
+
+Lets extract the slope and the intercept into discrete R variables. We will use them to plot:
+
+```{r}
+spark_slope <- coef(lm_model)[["Petal_Width"]]
+spark_intercept <- coef(lm_model)[["(Intercept)"]]
+```
+
+Now we can plot the relation
+
+```{r}
+iris_tbl %>%
+  select(Petal_Width, Petal_Length) %>%
+  collect() %>%
+  ggplot(aes(Petal_Length, Petal_Width)) +
+  geom_point(aes(Petal_Width, Petal_Length), size = 2, alpha = 0.5) +
+  geom_abline(aes(
+    slope = spark_slope,
+    intercept = spark_intercept
+  ),
+  color = "red"
+  ) +
+  labs(
+    x = "Petal Width",
+    y = "Petal Length",
+    title = "Linear Regression: Petal Length ~ Petal Width",
+    subtitle = "Use Spark.ML linear regression to predict petal length as a function of petal width."
+  )
+```
+
+## Logistic Regression
+
+Logistic regression is a popular method to predict a categorical response.
+The name "regression" is misleading, Linear Regression is a method for classification, instead of regression. The method tries to create a boundary between regions to be able to separate entries in classes. 
+
+Linear regression is a special case of Generalized Linear models that predicts the probability of the outcomes. In Spark, logistic regression can be used to predict a binary outcome by using *binomial logistic* regression, or it can be used to predict a multiclass outcome by using *multinomial logistic regression*. Use the family parameter to select between these two algorithms, or leave it unset and Spark will infer the correct variant.
+
+```{r}
+glm_model <- iris_tbl %>% 
+  mutate(is_setosa = ifelse(Species == "setosa", 1, 0)) %>% 
+  select_if(is.numeric) %>% 
+  ml_logistic_regression(is_setosa ~.)
+
+summary(glm_model)
+```
+
+It is not possible to visualize the complete hyperplane. The 4 slopes above and the intercept needs to be plotted in 5 dimensions. Here we are using a binary linear regression.
+
+```{r}
+ml_predict(glm_model, iris_tbl) %>% 
+  count(Species, prediction) 
+```
+
+## Principal Component Analysis
+
+Principal component analysis (PCA) is a statistical method to find a rotation such that the first coordinate has the largest variance possible, and each succeeding coordinate, in turn, has the largest variance possible. The columns of the rotation matrix are called principal components. PCA is used widely in dimensionality reduction.
+
+```{r}
+pca_model <- tbl(sc, "iris") %>%
+  select(-Species) %>%
+  ml_pca()
+
+pca_model
+```
+
+## Random Forest
+
+Random forests are ensembles of **decision trees**. Random forests combine many decision trees in order to reduce the risk of overfitting. Spark implementation supports random forests for binary and multiclass classification and for regression, using both continuous and categorical features.
+
+```{r}
+rf_model <- iris_tbl %>%
+  ml_random_forest(
+    Species ~ Petal_Length + Petal_Width, type = "classification"
+    )
+rf_model
+```
+
+```{r}
+rf_predict <- ml_predict(rf_model, iris_tbl) 
+glimpse(rf_predict)
+```
+
+```{r}
+rf_predict %>% 
+  count(Species, predicted_label) 
+```
+
+## Data Frame Splitting
+
+Split a Spark DataFrame into “training” and “test” datasets.
+This is a common operation for real Machine Learning models.
+
+```{r}
+partitions <- iris_tbl %>%
+  sdf_random_split(training = 0.75, test = 0.25, seed = 1099)
+```
+
+The partitions variable is now a list with two elements called training and test. It does not contain any data. It is just a pointer to where Spark has separated the data, so nothing is downloaded into R. Use partitions$training to access the data the Spark has separated for that purpose.
+
+```{r}
+fit <- partitions$training %>%
+  ml_linear_regression(Petal_Length ~ Petal_Width)
+fit
+```
+
+```{r}
+ml_predict(fit, partitions$test) %>%
+  mutate(resid = Petal_Length - prediction) %>%
+  summarize(mse = mean(resid ^ 2, na.rm = TRUE)) 
+```
+
+## Disconnect from Spark
+
+```{r}
+spark_disconnect(sc)
+```
+
+
+
