@@ -15,6 +15,11 @@ editor: visual
 Spark is built in the Scala programming language, which is run by the **Java Virtual Machine (JVM)**, you also need to install Java 8 on your system. It is likely that your system already has Java installed, but you should still check the version and update or downgrade as described in Installing Java. You can use the following R command to check which version is installed on your system:
 
 ```{r}
+sessionInfo()
+```
+
+
+```{r}
 system("java -version")
 ```
 
@@ -171,8 +176,7 @@ We call it linear regression, because we assume that response variable follow a 
 
 $$
 r = a_1 w_1 + a_2 w_2 + \cdots + a_n w_n
-$$
-The simplest case is when we have a response variable such as "Petal_Length" and we have a single explanatory variable "Petal_Width" we can create a model like this:
+$$ The simplest case is when we have a response variable such as "Petal_Length" and we have a single explanatory variable "Petal_Width" we can create a model like this:
 
 ```{r}
 lm_model <- iris_tbl %>%
@@ -211,8 +215,7 @@ iris_tbl %>%
 
 ## Logistic Regression
 
-Logistic regression is a popular method to predict a categorical response.
-The name "regression" is misleading, Linear Regression is a method for classification, instead of regression. The method tries to create a boundary between regions to be able to separate entries in classes. 
+Logistic regression is a popular method to predict a categorical response. The name "regression" is misleading, Linear Regression is a method for classification, instead of regression. The method tries to create a boundary between regions to be able to separate entries in classes.
 
 Linear regression is a special case of Generalized Linear models that predicts the probability of the outcomes. In Spark, logistic regression can be used to predict a binary outcome by using *binomial logistic* regression, or it can be used to predict a multiclass outcome by using *multinomial logistic regression*. Use the family parameter to select between these two algorithms, or leave it unset and Spark will infer the correct variant.
 
@@ -268,15 +271,14 @@ rf_predict %>%
 
 ## Data Frame Splitting
 
-Split a Spark DataFrame into “training” and “test” datasets.
-This is a common operation for real Machine Learning models.
+Split a Spark DataFrame into "training" and "test" datasets. This is a common operation for real Machine Learning models.
 
 ```{r}
 partitions <- iris_tbl %>%
   sdf_random_split(training = 0.75, test = 0.25, seed = 1099)
 ```
 
-The partitions variable is now a list with two elements called training and test. It does not contain any data. It is just a pointer to where Spark has separated the data, so nothing is downloaded into R. Use partitions$training to access the data the Spark has separated for that purpose.
+The partitions variable is now a list with two elements called training and test. It does not contain any data. It is just a pointer to where Spark has separated the data, so nothing is downloaded into R. Use partitions\$training to access the data the Spark has separated for that purpose.
 
 ```{r}
 fit <- partitions$training %>%
@@ -295,6 +297,3 @@ ml_predict(fit, partitions$test) %>%
 ```{r}
 spark_disconnect(sc)
 ```
-
-
-
