@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#PBS -N MXNET_JOB
-#PBS -j oe
-#PBS -l nodes=1:ppn=8:gpus=3
-###PBS -q comm_gpu_week
-#PBS -q be_gpu
+###SBATCH –J MXNET
+#SBATCH -N 1
+#SBATCH -c 8
+#SBATCH -G 3
+#SBATCH -p comm_gpu_week
 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
 NAME=CIFAR10_3GPU
-MXNET_IMAGE=/shared/containers/NGC_MXNet_22.07-py3.sif
+MXNET_IMAGE=/shared/containers/NGC_MXNet_22.09-py3.sif
 PYTHON_SCRIPT=/scratch/gufranco/deep_learning/scripts/train_cifar10.py
 OUTPUT=$HOME/scratch/deep_learning/output/$NAME
 DATA=$HOME/scratch/deep_learning/data

@@ -1,0 +1,42 @@
+Tue Jul 25 00:41:27 2023       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 530.30.02              Driver Version: 530.30.02    CUDA Version: 12.1     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                  Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf            Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  Quadro P6000                    Off| 00000000:37:00.0 Off |                  Off |
+| 26%   17C    P8                8W / 250W|      0MiB / 24576MiB |      0%   E. Process |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+13:4: not a valid test operator: (
+13:4: not a valid test operator: 530.30.02
+/usr/local/lib/python3.10/dist-packages/torch/cuda/__init__.py:124: UserWarning: CUDA initialization: Unexpected error from cudaGetDeviceCount(). Did you run some cuda functions before calling NumCudaDevices() that might have already set an error? Error 805: MPS client failed to connect to the MPS control daemon or the MPS server (Triggered internally at /opt/pytorch/pytorch/c10/cuda/CUDAFunctions.cpp:108.)
+  return torch._C._cuda_getDeviceCount() > 0
+Training loss :      0.62   Training accuracy :      48614/60000     81.02 %
+Validation loss :    0.17   Validation accuracy :     9505/10000     95.05 %
+Training loss :      0.22   Training accuracy :      56145/60000     93.57 %
+Validation loss :     0.1   Validation accuracy :     9695/10000     96.95 %
+Training loss :      0.16   Training accuracy :      57108/60000     95.18 %
+Validation loss :   0.073   Validation accuracy :     9774/10000     97.74 %
+Training loss :      0.14   Training accuracy :      57589/60000     95.98 %
+Validation loss :   0.062   Validation accuracy :     9797/10000     97.97 %
+Training loss :      0.12   Training accuracy :      57824/60000     96.37 %
+Validation loss :   0.055   Validation accuracy :     9817/10000     98.17 %
+Training loss :      0.11   Training accuracy :      58055/60000     96.76 %
+Validation loss :   0.055   Validation accuracy :     9828/10000     98.28 %
+Training loss :       0.1   Training accuracy :      58202/60000      97.0 %
+Validation loss :   0.045   Validation accuracy :     9852/10000     98.52 %
+Training loss :     0.093   Training accuracy :      58346/60000     97.24 %
+Validation loss :   0.045   Validation accuracy :     9851/10000     98.51 %
+Training loss :     0.087   Training accuracy :      58391/60000     97.32 %
+Validation loss :   0.044   Validation accuracy :     9854/10000     98.54 %
