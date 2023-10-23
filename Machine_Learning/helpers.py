@@ -23,25 +23,25 @@ point_colors = ListedColormap([
 
 def set_css_in_cell_output():
   display(HTML("""<style>
-    .div-1 {
-        background-color: #EBEBEB;
+    .div-red {
+        background-color: #EE2A35;
     }
 
-    .div-2 {
-    	background-color: #ABBAEA;
+    .div-green {
+    	background-color: #009736;
     }
 
-    .div-3 {
-    	background-color: #FBD603;
+    .div-black {
+    	background-color: #000000;
     }
     .div-white {
     	background-color: #FFFFFF;
     }
     h1 {
-      color: #002855;
+      color: #EE2A35;
     }
     h2 {
-      color: #002855;
+      color: #009736;
     }
 </style>
 """))
