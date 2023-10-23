@@ -1,3 +1,4 @@
+from IPython.display import Math, HTML, display
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import ListedColormap
 import numpy as np
@@ -18,6 +19,33 @@ point_colors = ListedColormap([
   '#ff0000',
   '#0000ff',
 ])
+
+
+def set_css_in_cell_output():
+  display(HTML("""<style>
+    .div-1 {
+        background-color: #EBEBEB;
+    }
+
+    .div-2 {
+    	background-color: #ABBAEA;
+    }
+
+    .div-3 {
+    	background-color: #FBD603;
+    }
+    .div-white {
+    	background-color: #FFFFFF;
+    }
+    h1 {
+      color: #002855;
+    }
+    h2 {
+      color: #002855;
+    }
+</style>
+"""))
+
 
 def plot_decision_boundary(clf, X, labels, margin=0.2, mesh_unit=0.01, proba=False):
   '''
