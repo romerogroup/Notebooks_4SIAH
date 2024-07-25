@@ -7,7 +7,7 @@
    viewBox="0 0 264.58334 52.916666"
    version="1.1"
    id="svg5"
-   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   inkscape:version="1.2.2 (b0a8486, 2022-12-01)"
    sodipodi:docname="Title_Python.svg"
    inkscape:export-filename="Title_Python.png"
    inkscape:export-xdpi="96"
@@ -29,12 +29,12 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.6290957"
-     inkscape:cx="572.40345"
-     inkscape:cy="125.22285"
+     inkscape:cx="1340.6211"
+     inkscape:cy="145.7864"
      inkscape:window-width="1397"
-     inkscape:window-height="792"
+     inkscape:window-height="785"
      inkscape:window-x="0"
-     inkscape:window-y="23"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" /><defs
      id="defs2"><linearGradient
@@ -54,7 +54,7 @@
        x2="130.7393"
        y2="11.368782"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0.48891965)" /><linearGradient
+       gradientTransform="matrix(1.2493715,0,0,1,0.61084228,0)" /><linearGradient
        id="linearGradient2795"><stop
          style="stop-color:#b8b8b8;stop-opacity:0.49803922;"
          offset="0"
@@ -180,9 +180,9 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"><rect
-       style="fill:url(#linearGradient3992);fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round"
+       style="fill:url(#linearGradient3992);fill-opacity:1;stroke:none;stroke-width:1.11775;stroke-linejoin:round"
        id="rect3565"
-       width="211.66667"
+       width="264.45029"
        height="52.916668"
        x="0"
        y="0" /></g><g
